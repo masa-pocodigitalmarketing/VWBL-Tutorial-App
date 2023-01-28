@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { ErrorMessage } from '@hookform/error-message';
 import './Create.css';
 import { useDisclosure } from '../../../hooks';
+import { VwblContainer } from '../../../container';
 
 export const Create = () => {
   const [file, setFile] = useState();
@@ -14,17 +15,46 @@ export const Create = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const { isOpen, handleOpen } = useDisclosure();
+  const { web3, vwbl, connectWallet } = VwblContainer.useContainer();
 
   // Lesson-4
-  const mintNft = (data) => {
+  const mintNft = async (data) => {
+    // Loading開始
     setIsLoading(true);
-    console.log('submitted data', data);
-    console.log('mint start...');
-    setTimeout(() => {
-      console.log('mint success!');
+  
+    // web3またはvwblインスタンスがundefinedの場合
+    if (!web3 || !vwbl) {
+        alert('Your wallet is not connected. Please try again.');
+        setIsLoading(false);
+        await connectWallet();
+        return;
+    }
+  
+    // 各入力データを抽出
+    const { asset, thumbnail, title, description } = data;
+  
+    try {
+      // VWBLネットワークに対する署名を確認
+      if (!vwbl.signature) {
+        await vwbl.sign();
+      }
+  
+      // VWBL NFTを発行
+      await vwbl.managedCreateTokenForIPFS(title, description, asset[0], thumbnail[0], 0);
+  
+      // Loading終了
       setIsLoading(false);
+  
+      // Completeモーダルを表示
       handleOpen();
-    }, 7000);
+    } catch (error) {
+      // エラー内容を表示
+      console.error(error);
+      alert(error.message);
+  
+      // Loading終了
+      setIsLoading(false);
+    }
   };
 
   const {
