@@ -86,7 +86,7 @@ export const Detail = () => {
               Return to Thumbnail
             </button>
           )}
-          {userAddress === decryptedNft.owner && (
+          {userAddress.toLowerCase() === decryptedNft.owner.toLowerCase() && (
             <button className="Transfer-Button" onClick={handleOpen}>
               TRANSFER
             </button>
