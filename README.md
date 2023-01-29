@@ -1,4 +1,5 @@
-# My Changes
+# 課題提出ー実力認定証NFTをゲットしよう
+課題「7. web3.jsからethers.jsに移行してみよう」を実装しました。コードの変更箇所はtutorialブランチのコミット履歴（https://github.com/masa-pocodigitalmarketing/VWBL-Tutorial-App/commits/tutorial）のSummaryが「Assignment 7」のものを参照してください。
 
 # VWBL Tutorial App 　
 

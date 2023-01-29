@@ -1,7 +1,7 @@
 import { createContainer } from 'unstated-next';
 import { useState } from 'react';
-import Web3 from 'web3';
-import { ManageKeyType, UploadContentType, UploadMetadataType, VWBL } from 'vwbl-sdk';
+import { ethers } from "ethers";
+import { ManageKeyType, UploadContentType, UploadMetadataType, VWBLEthers } from 'vwbl-sdk';
 
 const useVWBL = () => {
   const [userAddress, setUserAddress] = useState('');
@@ -25,29 +25,31 @@ const useVWBL = () => {
 	    await ethereum.send('eth_requestAccounts');
 	
 	    // web3インスタンスの生成
-	    const web3 = new Web3(ethereum);
+      const web3 = new ethers.providers.Web3Provider(ethereum);
 	
 	    // ユーザーアドレスを取得
-	    const accounts = await web3.eth.getAccounts();
+      const accounts = await web3.send("eth_requestAccounts", []);
 	    const currentAccount = accounts[0];
+
+      const signer = web3.getSigner(); 
 	
 	    // 各変数のstateを保存
 	    setWeb3(web3);
 	    setUserAddress(currentAccount);
 
       // ネットワークを確認
-      const connectedChainId = await web3.eth.getChainId();
+      const connectedChainId = await (await web3.getNetwork()).chainId;
       const properChainId = parseInt(process.env.REACT_APP_CHAIN_ID); // 今回の場合、Mumbaiの80001
       if (connectedChainId !== properChainId) {
         // ネットワークがMumbaiでない場合はネットワークを変更
         await ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: web3.utils.toHex(properChainId) }],
+          params: [{ chainId: ethers.utils.hexValue(ethers.BigNumber.from(properChainId).toHexString()) }],
         });
       }
 
       // initVwblを実行してvwblインスタンスを作成する
-      initVwbl(web3);
+      initVwbl(web3, signer);
 	
 	  } catch (error) {
 	
@@ -74,10 +76,11 @@ const useVWBL = () => {
   };
 
   // Lesson-3
-  const initVwbl = (web3) => {
+  const initVwbl = (web3, signer) => {
     // vwblインスタンスの作成
-    const vwblInstance = new VWBL({
-      web3,
+    const vwblInstance = new VWBLEthers({
+      ethersProvider: web3,
+      ethersSigner: signer,
       contractAddress: process.env.REACT_APP_NFT_CONTRACT_ADDRESS,
       vwblNetworkUrl: process.env.REACT_APP_VWBL_NETWORK_URL,
       manageKeyType: ManageKeyType.VWBL_NETWORK_SERVER,
